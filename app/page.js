@@ -425,7 +425,35 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
     return Math.min((score / 15) * 100, 100);
   };
 
-  
+  useEffect(() => {
+  const saveData = async () => {
+    try {
+      // Save to database
+      const response = await fetch('/api/save-quiz-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userData,
+          score
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('Data saved to database successfully');
+      } else {
+        console.error('Failed to save to database:', result.message);
+      }
+    } catch (error) {
+      console.error('Error saving to database:', error);
+    }
+  };
+
+  saveData();
+}, []);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
