@@ -178,7 +178,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     },
     {
       id: 6,
-      text: "Have you heard your cholesterol levels are abnormal?",
+      text: "What is your HbA1c*?(glycated haemoglobin test)",
       image: "/img/q6.png",
       options: [
         { text: "No", points: 0, value: "normal_cholesterol" },
@@ -187,8 +187,17 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     },
     {
       id: 7,
-      text: "Are you physically active?",
+      text: "Have you heard your cholesterol levels are abnormal?",
       image: "/img/q7.png",
+      options: [
+        { text: "No", points: 0, value: "normal_cholesterol" },
+        { text: "Yes", points: 2, value: "abnormal_cholesterol" }
+      ]
+    },
+    {
+      id: 8,
+      text: "Are you physically active?",
+      image: "/img/q8.png",
       options: [
         { text: "No", points: 1, value: "not_active" },
         { text: "Yes", points: 0, value: "physically_active" }
@@ -201,7 +210,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
 
     if (currentGender === 'male') {
       return [{
-        id: 8,
+        id: 9,
         text: "Do you drink alcohol at least once a week?",
         image: "/img/q9.2.png",
         options: [
@@ -211,7 +220,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
       }];
     } else if (currentGender === 'female') {
       return [{
-        id: 9,
+        id: 10,
         text: "Did you have menopause?",
         image: "/img/q9.1.png",
         options: [
