@@ -1,7 +1,6 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-
 // User Info Form Component
 const UserInfoForm = ({ onNext, onPrevious }) => {
   const [formData, setFormData] = useState({
@@ -44,10 +43,10 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decoration circle - same as homepage */}
+      {/* Background decoration circle */}
       <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
       
-      {/* Main Form Container - Blue overlay */}
+      {/* Main Form Container */}
       <div className="w-full max-w-md mx-auto z-10">
         <div className="bg-cyan-400 rounded-3xl p-6 shadow-2xl">
           {/* Liver Character Image */}
@@ -124,10 +123,332 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
   );
 };
 
+// Quiz Component
+const QuizComponent = ({ onNext, onPrevious, userData }) => {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [totalScore, setTotalScore] = useState(0);
+
+  // Quiz questions based on the NAFLD Risk Assessment
+  const questions = [
+    {
+      id: 1,
+      text: "What is your age group?",
+      options: [
+        { text: "Less than 35 years", points: 0, value: "under35" },
+        { text: "35 years or older", points: 2, value: "over35" }
+      ]
+    },
+    {
+      id: 2,
+      text: "What is your waist measurement?",
+      options: userData?.gender === 'male' ? [
+        { text: "< 80 cm (31 in)", points: 0, value: "male_under80" },
+        { text: "80–89.9 cm (31–34.9 in)", points: 2, value: "male_80-89" },
+        { text: "90–99.9 cm (35–38.9 in)", points: 3, value: "male_90-99" },
+        { text: "≥ 100 cm (39 in)", points: 4, value: "male_over100" }
+      ] : [
+        { text: "< 75 cm (29 in)", points: 0, value: "female_under75" },
+        { text: "75–84.9 cm (29–32.9 in)", points: 1, value: "female_75-84" },
+        { text: "85–94.9 cm (33–36.9 in)", points: 2, value: "female_85-94" },
+        { text: "≥ 95 cm (37 in)", points: 3, value: "female_over95" }
+      ]
+    },
+    {
+      id: 3,
+      text: "What is your Body Mass Index (BMI)?",
+      subtitle: "(BMI = body weight in kg ÷ height in m²)",
+      options: [
+        { text: "< 23 kg/m²", points: 0, value: "bmi_under23" },
+        { text: "23–24.9 kg/m²", points: 1, value: "bmi_23-24" },
+        { text: "25–26.9 kg/m²", points: 2, value: "bmi_25-26" },
+        { text: "≥ 27 kg/m²", points: 3, value: "bmi_over27" }
+      ]
+    },
+    {
+      id: 4,
+      text: "Do you have diabetes?",
+      options: [
+        { text: "No", points: 0, value: "no_diabetes" },
+        { text: "Yes", points: 2, value: "has_diabetes" }
+      ]
+    },
+    {
+      id: 5,
+      text: "Have you heard your cholesterol levels are abnormal?",
+      options: [
+        { text: "No", points: 0, value: "normal_cholesterol" },
+        { text: "Yes", points: 2, value: "abnormal_cholesterol" }
+      ]
+    },
+    {
+      id: 6,
+      text: "Are you physically active?",
+      options: [
+        { text: "No", points: 1, value: "not_active" },
+        { text: "Yes", points: 0, value: "physically_active" }
+      ]
+    }
+  ];
+
+  // Add gender-specific questions
+  const genderSpecificQuestions = userData?.gender === 'male' ? [
+    {
+      id: 7,
+      text: "Do you drink alcohol at least once a week?",
+      options: [
+        { text: "No", points: 0, value: "no_alcohol" },
+        { text: "Yes", points: 1, value: "drinks_alcohol" }
+      ]
+    }
+  ] : [
+    {
+      id: 8,
+      text: "Did you have menopause?",
+      options: [
+        { text: "No", points: 0, value: "no_menopause" },
+        { text: "Yes", points: 1, value: "has_menopause" }
+      ]
+    }
+  ];
+
+  const allQuestions = [...questions, ...genderSpecificQuestions];
+
+  const handleAnswerSelect = (option) => {
+    const newAnswers = {
+      ...answers,
+      [currentQuestion]: option
+    };
+    setAnswers(newAnswers);
+    
+    // Calculate total score
+    const score = Object.values(newAnswers).reduce((sum, answer) => sum + answer.points, 0);
+    setTotalScore(score);
+  };
+
+  const handleNext = () => {
+    if (currentQuestion < allQuestions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Quiz completed, save results and proceed
+      const quizResults = {
+        answers,
+        totalScore,
+        riskLevel: totalScore >= 8 ? 'high' : 'low',
+        completedAt: new Date().toISOString()
+      };
+      
+      // Save to localStorage
+      const existingData = JSON.parse(localStorage.getItem('quizUserData') || '{}');
+      localStorage.setItem('quizUserData', JSON.stringify({
+        ...existingData,
+        quizResults
+      }));
+      
+      onNext(quizResults);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    } else {
+      onPrevious();
+    }
+  };
+
+  const currentQ = allQuestions[currentQuestion];
+  const selectedAnswer = answers[currentQuestion];
+
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decoration circle */}
+      <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
+      
+      {/* Main Quiz Container */}
+      <div className="w-full max-w-2xl mx-auto z-10">
+        <div className="bg-white rounded-3xl p-6 shadow-2xl border border-gray-100">
+          {/* Progress Bar */}
+          <div className="mb-6">
+            <div className="flex justify-between text-sm text-gray-500 mb-2">
+              <span>Question {currentQuestion + 1} of {allQuestions.length}</span>
+              <span>Score: {totalScore}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-cyan-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${((currentQuestion + 1) / allQuestions.length) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Question */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              {currentQ.text}
+            </h2>
+            {currentQ.subtitle && (
+              <p className="text-gray-600 text-sm">
+                {currentQ.subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* Options */}
+          <div className="space-y-3 mb-8">
+            {currentQ.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(option)}
+                className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${
+                  selectedAnswer?.value === option.value
+                    ? 'border-cyan-500 bg-cyan-50 text-cyan-800'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">{option.text}</span>
+                  <span className="text-sm text-gray-500">
+                    {option.points} {option.points === 1 ? 'point' : 'points'}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center">
+            <button
+              onClick={handlePrevious}
+              className="text-gray-600 font-semibold text-lg hover:text-gray-800 transition-colors duration-200"
+            >
+              Previous
+            </button>
+            
+            <button
+              onClick={handleNext}
+              disabled={!selectedAnswer}
+              className={`font-bold text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-200 ${
+                selectedAnswer
+                  ? 'bg-cyan-500 hover:bg-cyan-600 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {currentQuestion === allQuestions.length - 1 ? 'Finish' : 'Next'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Results Component
+const ResultsComponent = ({ onRestart, userData, quizResults }) => {
+  const isHighRisk = quizResults.totalScore >= 8;
+
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decoration circle */}
+      <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
+      
+      {/* Results Container */}
+      <div className="w-full max-w-2xl mx-auto z-10">
+        <div className={`rounded-3xl p-8 shadow-2xl ${isHighRisk ? 'bg-red-50 border-2 border-red-200' : 'bg-green-50 border-2 border-green-200'}`}>
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="text-6xl mb-4">
+              {isHighRisk ? '⚠️' : '✅'}
+            </div>
+            <h1 className="text-3xl font-bold mb-2">
+              {isHighRisk ? 'High Risk Detected' : 'Low Risk'}
+            </h1>
+            <p className="text-xl text-gray-600">
+              Your NAFLD Risk Score: <span className="font-bold text-2xl">{quizResults.totalScore}</span>
+            </p>
+          </div>
+
+          {/* Risk Assessment */}
+          <div className={`p-6 rounded-2xl mb-6 ${isHighRisk ? 'bg-red-100' : 'bg-green-100'}`}>
+            {isHighRisk ? (
+              <div>
+                <h3 className="text-xl font-bold text-red-800 mb-3">
+                  You are at high risk for Non-Alcoholic Fatty Liver Disease (NAFLD)
+                </h3>
+                <p className="text-red-700 mb-4">
+                  We recommend that you consult with your doctor about NAFLD and consider further medical tests.
+                </p>
+                <div className="bg-red-200 p-4 rounded-lg">
+                  <p className="text-red-800 font-semibold text-sm">
+                    ⚠️ Important: This assessment is not intended as medical advice. 
+                    Always consult your physician or healthcare professional for proper diagnosis and treatment.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-xl font-bold text-green-800 mb-3">
+                  Your risk for NAFLD appears to be low
+                </h3>
+                <p className="text-green-700 mb-4">
+                  Based on your responses, you have a lower risk of developing Non-Alcoholic Fatty Liver Disease. 
+                  Continue maintaining a healthy lifestyle with regular exercise and a balanced diet.
+                </p>
+                <div className="bg-green-200 p-4 rounded-lg">
+                  <p className="text-green-800 font-semibold text-sm">
+                    💡 Remember: Regular health check-ups are still important for maintaining good health.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User Info Summary */}
+          <div className="bg-white p-6 rounded-2xl mb-6">
+            <h4 className="font-bold text-gray-800 mb-3">Assessment Summary for:</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div><span className="font-semibold">Name:</span> {userData.name}</div>
+              <div><span className="font-semibold">Email:</span> {userData.email}</div>
+              <div><span className="font-semibold">City:</span> {userData.city}</div>
+              <div><span className="font-semibold">Mobile:</span> {userData.mobile}</div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={onRestart}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg transition-colors duration-200"
+            >
+              Take Assessment Again
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg transition-colors duration-200"
+            >
+              Print Results
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main Homepage Component
 const Homepage = () => {
-  const [currentStep, setCurrentStep] = useState('home'); // 'home' or 'userInfo'
+  const [currentStep, setCurrentStep] = useState('home');
   const [userData, setUserData] = useState(null);
+  const [quizResults, setQuizResults] = useState(null);
+
+  // Load saved data on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('quizUserData');
+    if (savedData) {
+      const parsed = JSON.parse(savedData);
+      setUserData(parsed);
+    }
+  }, []);
 
   const handleLetsGo = () => {
     setCurrentStep('userInfo');
@@ -135,35 +456,68 @@ const Homepage = () => {
 
   const handleUserInfoNext = (formData) => {
     setUserData(formData);
+    // Save user data to in-memory state (localStorage not supported in artifacts)
     console.log('User data collected:', formData);
-    // Here you can navigate to the next step (quiz questions)
-    // For now, we'll just log the data
-    alert(`Welcome ${formData.name}! Quiz will start next.`);
+    setCurrentStep('quiz');
+  };
+
+  const handleQuizComplete = (results) => {
+    setQuizResults(results);
+    setCurrentStep('results');
   };
 
   const handleBackToHome = () => {
     setCurrentStep('home');
   };
 
-  // Render User Info Form
-  if (currentStep === 'userInfo') {
-    return (
-      <UserInfoForm 
-        onNext={handleUserInfoNext}
-        onPrevious={handleBackToHome}
-      />
-    );
-  }
+  const handleBackToUserInfo = () => {
+    setCurrentStep('userInfo');
+  };
 
-  // Render Homepage
-  return (
-    <div className="h-screen bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decoration circle */}
-      <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
-      
-      {/* Logo Section */}
-      <div className="mb-4 z-10">
-        <div className="rounded-lg flex items-center justify-center">
+  const handleRestart = () => {
+    setUserData(null);
+    setQuizResults(null);
+    setCurrentStep('home');
+  };
+
+  // Render based on current step
+  switch (currentStep) {
+    case 'userInfo':
+      return (
+        <UserInfoForm 
+          onNext={handleUserInfoNext}
+          onPrevious={handleBackToHome}
+        />
+      );
+    
+    case 'quiz':
+      return (
+        <QuizComponent
+          onNext={handleQuizComplete}
+          onPrevious={handleBackToUserInfo}
+          userData={userData}
+        />
+      );
+    
+    case 'results':
+      return (
+        <ResultsComponent
+          onRestart={handleRestart}
+          userData={userData}
+          quizResults={quizResults}
+        />
+      );
+
+    default:
+      // Homepage
+      return (
+        <div className="h-screen bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+          {/* Background decoration circle */}
+          <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
+          
+          {/* Logo Section */}
+          <div className="mb-4 z-10">
+            <div className="rounded-lg flex items-center justify-center">
           <Image 
             src="/img/ayushman_logo.png" 
             alt="Ayushman Liver" 
@@ -172,20 +526,20 @@ const Homepage = () => {
             className="w-[224px]" 
             priority
           />
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* Main Content */}
-      <div className="relative mb-0 z-10">
-        <div className="text-center px-4 mb-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-cyan-600 leading-tight">
-            Assess your risk<br />
-            of Fatty Liver
-          </h1>
-        </div>
-        
-        {/* Liver image */}
-        <div className="flex items-center justify-center">
+          {/* Main Content */}
+          <div className="relative mb-0 z-10">
+            <div className="text-center px-4 mb-2">
+              <h1 className="text-4xl md:text-5xl font-bold text-cyan-600 leading-tight">
+                Assess your risk<br />
+                of Fatty Liver
+              </h1>
+            </div>
+            
+            {/* Liver image placeholder */}
+            <div className="flex items-center justify-center">
           <Image 
             src="/img/liver.png" 
             alt="Liver" 
@@ -194,20 +548,21 @@ const Homepage = () => {
             className="w-[250px] max-w-[400px]" 
             priority
           />
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {/* CTA Button */}
-      <div className="mt-8 z-10">
-        <button 
-          className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-16 py-4 rounded-full shadow-lg transition-colors duration-200"
-          onClick={handleLetsGo}
-        >
-          Let's go!
-        </button>
-      </div>
-    </div>
-  );
+          {/* CTA Button */}
+          <div className="mt-8 z-10">
+            <button 
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-16 py-4 rounded-full shadow-lg transition-colors duration-200"
+              onClick={handleLetsGo}
+            >
+              Let's go!
+            </button>
+          </div>
+        </div>
+      );
+  }
 };
 
 export default Homepage;
