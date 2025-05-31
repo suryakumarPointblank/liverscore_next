@@ -328,6 +328,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
             <Image
               src={currentQ.image}
               width={300}
+              key={`question-${currentQuestion}-${currentQ.id}`}
               height={200}
               alt='question illustration'
               className={`h-auto object-contain ${currentQ.id === 1 ? 'w-full max-w-[250px]' : // Age question
