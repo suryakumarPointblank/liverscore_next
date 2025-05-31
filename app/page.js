@@ -142,24 +142,23 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     },
     {
       id: 2,
-      text: "What is your waist measurement?",
-      image: userData?.gender === 'male' ?"/img/q3.1.png": "/img/q3.2.png",
-      options: userData?.gender === 'male' ? [
-        { text: "< 80 cm (31 in)", points: 0, value: "male_under80" },
-        { text: "80–89.9 cm (31–34.9 in)", points: 2, value: "male_80-89" },
-        { text: "90–99.9 cm (35–38.9 in)", points: 3, value: "male_90-99" },
-        { text: "≥ 100 cm (39 in)", points: 4, value: "male_over100" }
-      ] : [
-        { text: "< 75 cm (29 in)", points: 0, value: "female_under75" },
-        { text: "75–84.9 cm (29–32.9 in)", points: 1, value: "female_75-84" },
-        { text: "85–94.9 cm (33–36.9 in)", points: 2, value: "female_85-94" },
-        { text: "≥ 95 cm (37 in)", points: 3, value: "female_over95" }
+      text: "What is your gender?",
+      image: "/img/q3.png", // You'll need to add this image
+      options: [
+        { text: "Male", points: 0, value: "male" },
+        { text: "Female", points: 0, value: "female" }
       ]
     },
     {
       id: 3,
+      text: "What is your waist measurement?",
+      image: "/img/q3.1.png", // Will be dynamic based on gender
+      options: [] // Will be populated dynamically
+    },
+    {
+      id: 4,
       text: "What is your Body Mass Index (BMI)?",
-      image: "/img/q3.png",
+      image: "/img/q4.png",
       subtitle: "(BMI = body weight in kg ÷ height in m²)",
       options: [
         { text: "< 23 kg/m²", points: 0, value: "bmi_under23" },
@@ -169,58 +168,62 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
       ]
     },
     {
-      id: 4,
+      id: 5,
       text: "Do you have diabetes?",
-      image: "/img/age_question.png",
+      image: "/img/q5.png",
       options: [
         { text: "No", points: 0, value: "no_diabetes" },
         { text: "Yes", points: 2, value: "has_diabetes" }
       ]
     },
     {
-      id: 5,
+      id: 6,
       text: "Have you heard your cholesterol levels are abnormal?",
-      image: "/img/age_question.png",
+      image: "/img/q6.png",
       options: [
         { text: "No", points: 0, value: "normal_cholesterol" },
         { text: "Yes", points: 2, value: "abnormal_cholesterol" }
       ]
     },
     {
-      id: 6,
+      id: 7,
       text: "Are you physically active?",
-      image: "/img/age_question.png",
+      image: "/img/q7.png",
       options: [
         { text: "No", points: 1, value: "not_active" },
         { text: "Yes", points: 0, value: "physically_active" }
       ]
     }
   ];
-
   // Add gender-specific questions
-  const genderSpecificQuestions = userData?.gender === 'male' ? [
-    {
-      id: 7,
-      text: "Do you drink alcohol at least once a week?",
-      image: "/img/age_question.png",
-      options: [
-        { text: "No", points: 0, value: "no_alcohol" },
-        { text: "Yes", points: 1, value: "drinks_alcohol" }
-      ]
-    }
-  ] : [
-    {
-      id: 8,
-      text: "Did you have menopause?",
-      image: "/img/age_question.png",
-      options: [
-        { text: "No", points: 0, value: "no_menopause" },
-        { text: "Yes", points: 1, value: "has_menopause" }
-      ]
-    }
-  ];
+  const getGenderSpecificQuestions = () => {
+    const currentGender = answers[1]?.value || userData?.gender; // Get from current answer or user data
 
-  const allQuestions = [...questions, ...genderSpecificQuestions];
+    if (currentGender === 'male') {
+      return [{
+        id: 8,
+        text: "Do you drink alcohol at least once a week?",
+        image: "/img/q9.2.png",
+        options: [
+          { text: "No", points: 0, value: "no_alcohol" },
+          { text: "Yes", points: 1, value: "drinks_alcohol" }
+        ]
+      }];
+    } else if (currentGender === 'female') {
+      return [{
+        id: 9,
+        text: "Did you have menopause?",
+        image: "/img/q9.1.png",
+        options: [
+          { text: "No", points: 0, value: "no_menopause" },
+          { text: "Yes", points: 1, value: "has_menopause" }
+        ]
+      }];
+    }
+    return [];
+  };
+
+  const allQuestions = [...questions, ...getGenderSpecificQuestions()];
 
   const handleAnswerSelect = (option) => {
     const newAnswers = {
@@ -265,7 +268,27 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     }
   };
 
-  const currentQ = allQuestions[currentQuestion];
+  let currentQ = allQuestions[currentQuestion];
+
+  // Handle dynamic waist measurement options based on gender
+  if (currentQ.id === 3) {
+    const currentGender = answers[1]?.value || userData?.gender;
+    currentQ = {
+      ...currentQ,
+      image: currentGender === 'male' ? "/img/q3.1.png" : "/img/q3.2.png",
+      options: currentGender === 'male' ? [
+        { text: "< 80 cm (31 in)", points: 0, value: "male_under80" },
+        { text: "80–89.9 cm (31–34.9 in)", points: 2, value: "male_80-89" },
+        { text: "90–99.9 cm (35–38.9 in)", points: 3, value: "male_90-99" },
+        { text: "≥ 100 cm (39 in)", points: 4, value: "male_over100" }
+      ] : [
+        { text: "< 75 cm (29 in)", points: 0, value: "female_under75" },
+        { text: "75–84.9 cm (29–32.9 in)", points: 1, value: "female_75-84" },
+        { text: "85–94.9 cm (33–36.9 in)", points: 2, value: "female_85-94" },
+        { text: "≥ 95 cm (37 in)", points: 3, value: "female_over95" }
+      ]
+    };
+  }
   const selectedAnswer = answers[currentQuestion];
 
   return (
@@ -292,7 +315,18 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
 
           {/* Question Image */}
           <div className="bg-white rounded-2xl p-6 mb-6 flex items-center justify-center">
-            <Image src={currentQ.image} width={300} height={200} alt='question illustration' />
+            <Image
+              src={currentQ.image}
+              width={300}
+              height={200}
+              alt='question illustration'
+              className={`h-auto object-contain ${currentQ.id === 1 ? 'w-full max-w-[250px]' : // Age question
+                  currentQ.id === 2 ? 'w-full max-h-[150px]' : // Gender question  
+                    currentQ.id === 3 ? 'w-full max-h-[150px]' : // Waist measurement
+                      currentQ.id === 4 ? 'w-full max-h-[150px]' : // BMI question
+                        'w-full max-h-[150px]' // Default for other questions
+                }`}
+            />
           </div>
 
           {/* Question */}
