@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 // User Info Form Component
 const UserInfoForm = ({ onNext, onPrevious }) => {
   const [formData, setFormData] = useState({
@@ -55,7 +56,7 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
           </div>
 
           {/* Form Fields */}
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4 mb-8 text-base">
             <div>
               <input
                 type="text"
@@ -63,7 +64,7 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
                 placeholder="Name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 text-lg"
+                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 "
               />
             </div>
 
@@ -74,7 +75,7 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
                 placeholder="E-mail Id"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 text-lg"
+                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 "
               />
             </div>
 
@@ -85,7 +86,7 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
                 placeholder="City"
                 value={formData.city}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 text-lg"
+                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 "
               />
             </div>
 
@@ -96,7 +97,7 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
                 placeholder="Mobile No"
                 value={formData.mobile}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 text-lg"
+                className="w-full px-4 py-2 bg-white/90 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-white/50 "
               />
             </div>
           </div>
@@ -323,17 +324,17 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
           </div>
 
           {/* Question Image */}
-          <div className="bg-white rounded-2xl p-6 mb-6 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-2 mb-6 flex items-center justify-center">
             <Image
               src={currentQ.image}
               width={300}
               height={200}
               alt='question illustration'
               className={`h-auto object-contain ${currentQ.id === 1 ? 'w-full max-w-[250px]' : // Age question
-                  currentQ.id === 2 ? 'w-full max-h-[150px]' : // Gender question  
-                    currentQ.id === 3 ? 'w-full max-h-[150px]' : // Waist measurement
-                      currentQ.id === 4 ? 'w-full max-h-[150px]' : // BMI question
-                        'w-full max-h-[150px]' // Default for other questions
+                currentQ.id === 2 ? 'w-full max-h-[150px]' : // Gender question  
+                  currentQ.id === 3 ? 'w-full max-h-[150px]' : // Waist measurement
+                    currentQ.id === 4 ? 'w-full max-h-[150px]' : // BMI question
+                      'w-full max-h-[150px]' // Default for other questions
                 }`}
             />
           </div>
@@ -358,7 +359,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
                 onClick={() => handleAnswerSelect(option)}
                 className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 flex items-center ${selectedAnswer?.value === option.value
                   ? 'border-cyan-500 bg-cyan-50 text-cyan-800'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600'
                   }`}
               >
                 <div className={`w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center ${selectedAnswer?.value === option.value
@@ -373,7 +374,12 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
               </button>
             ))}
           </div>
+          {currentQuestion == 3 && (<div>
+            <Link href="https://nash24x7.com/bmi/" className={` p-2 mb-2 text-left rounded-xl border-2 transition-all duration-200 flex items-center text-gray-600`}> Calculate your BMI
+            </Link>
 
+          </div>)}
+          
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center">
             <button
@@ -402,89 +408,139 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
 
 // Results Component
 const ResultsComponent = ({ onRestart, userData, quizResults }) => {
-  const isHighRisk = quizResults.totalScore >= 8;
+  const score = quizResults.totalScore;
+
+  // Determine risk level based on score
+  const getRiskLevel = (score) => {
+    if (score >= 8) return { level: 'High Risk', color: 'red', bgColor: 'bg-red-50' };
+    if (score >= 4) return { level: 'Moderate Risk', color: 'yellow', bgColor: 'bg-yellow-50' };
+    return { level: 'Low Risk', color: 'green', bgColor: 'bg-green-50' };
+  };
+
+  const riskInfo = getRiskLevel(score);
+  const isHighRisk = score >= 8;
+
+  // Calculate slider position (score ranges from 0-15)
+  const getSliderPosition = (score) => {
+    return Math.min((score / 15) * 100, 100);
+  };
+
+  
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decoration circle */}
+      {/* Background decoration circle - same as homepage */}
       <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
+      <div className="rounded-lg absolute top-0 right-0 z-100 flex items-center justify-center">
+        <Image
+          src="/img/ayushman_logo.png"
+          alt="Ayushman Liver"
+          width={500}
+          height={367}
+          className="w-[140px]"
+          priority
+        />
+      </div>
+
+
+
 
       {/* Results Container */}
-      <div className="w-full max-w-2xl mx-auto z-10">
-        <div className={`rounded-3xl p-8 shadow-2xl ${isHighRisk ? 'bg-red-50 border-2 border-red-200' : 'bg-green-50 border-2 border-green-200'}`}>
-          {/* Header */}
-          <div className="text-center mb-6">
-            <div className="text-6xl mb-4">
-              {isHighRisk ? '⚠️' : '✅'}
-            </div>
-            <h1 className="text-3xl font-bold mb-2">
-              {isHighRisk ? 'High Risk Detected' : 'Low Risk'}
-            </h1>
-            <p className="text-xl text-gray-600">
-              Your NAFLD Risk Score: <span className="font-bold text-2xl">{quizResults.totalScore}</span>
-            </p>
+      <div className="w-full max-w-md mx-auto z-10 mt-[60px]">
+        <div className="  p-6  text-center">
+
+          {/* Title */}
+          {score && score < 8 ? (<h1 className="text-3xl font-bold text-green-600 mb-2">
+            Healthy
+          </h1>) : (<h1 className="text-3xl font-bold text-red-600 mb-2">
+            Unhealthy
+          </h1>)}
+          {score && score < 8 ? (<h1 className="text-3xl font-bold text-green-600 mb-2">
+            Liver Score
+          </h1>) : (<h1 className="text-3xl font-bold text-red-600 mb-2">
+            Liver Score
+          </h1>)}
+
+
+          {/* Score Display */}
+          <div className={`text-5xl font-bold ${score < 8 ? 'text-green-600' : 'text-red-600'}  mb-6`}>
+            {score}
           </div>
 
-          {/* Risk Assessment */}
-          <div className={`p-6 rounded-2xl mb-6 ${isHighRisk ? 'bg-red-100' : 'bg-green-100'}`}>
+          {/* Risk Level Labels */}
+          <div className="flex justify-between items-center mb-4 text-xs font-semibold">
+            <span className="text-green-600 " style={{ flex: '4' }}>Low Risk</span>
+            <span className="text-yellow-600" style={{ flex: '5' }}>Moderate Risk</span>
+            <span className="text-red-600" style={{ flex: '7' }}>High Risk</span>
+          </div>
+
+          {/* Risk Slider */}
+          <div className="relative mb-8">
+            {/* Background slider track with three colors */}
+            <div className="h-8 rounded-full overflow-hidden flex">
+              <div className="bg-green-500" style={{ flex: '3' }}></div>
+              <div className="bg-yellow-500" style={{ flex: '5' }}></div>
+              <div className="bg-red-500" style={{ flex: '7' }}></div>
+            </div>
+
+            {/* Score markers positioned correctly */}
+            <div className="flex justify-between mt-2 mb-4 text-sm text-gray-600 relative">
+              <span className="absolute left-0">1</span>
+              <span className="absolute left-[20%] transform -translate-x-1/2">3</span>
+              {/* <span className="absolute left-[40%] transform -translate-x-1/2">4</span> */}
+              {/* <span className="absolute left-[60%] transform -translate-x-1/2">7</span> */}
+              <span className="absolute left-[53%] transform -translate-x-1/2">8</span>
+              {/* <span className="absolute right-0">15</span> */}
+            </div>
+
+            {/* Position indicator below slider */}
+            <div className="relative">
+              <div
+                className="absolute flex flex-col items-center transition-all duration-500"
+                style={{ left: `${getSliderPosition(score)}%`, transform: 'translateX(-50%)' }}
+              >
+                {/* Pointer/Arrow */}
+                <div className="w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-gray-800"></div>
+                {/* "You are here" text */}
+                <div className="bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap mt-1">
+                  You are here
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Risk Message */}
+          <div className="mb-6 mt-15">
             {isHighRisk ? (
-              <div>
-                <h3 className="text-xl font-bold text-red-800 mb-3">
-                  You are at high risk for Non-Alcoholic Fatty Liver Disease (NAFLD)
-                </h3>
-                <p className="text-red-700 mb-4">
-                  We recommend that you consult with your doctor about NAFLD and consider further medical tests.
-                </p>
-                <div className="bg-red-200 p-4 rounded-lg">
-                  <p className="text-red-800 font-semibold text-sm">
-                    ⚠️ Important: This assessment is not intended as medical advice.
-                    Always consult your physician or healthcare professional for proper diagnosis and treatment.
-                  </p>
-                </div>
-              </div>
+              <p className="text-red-600 font-semibold text-base">
+                You are at high risk for Metabolic dysfunction-Associated Steatotic Liver Disease (MASLD). Consult your doctor at the earliest and ask about MASLD and further steps to the taken.
+              </p>
             ) : (
-              <div>
-                <h3 className="text-xl font-bold text-green-800 mb-3">
-                  Your risk for NAFLD appears to be low
-                </h3>
-                <p className="text-green-700 mb-4">
-                  Based on your responses, you have a lower risk of developing Non-Alcoholic Fatty Liver Disease.
-                  Continue maintaining a healthy lifestyle with regular exercise and a balanced diet.
-                </p>
-                <div className="bg-green-200 p-4 rounded-lg">
-                  <p className="text-green-800 font-semibold text-sm">
-                    💡 Remember: Regular health check-ups are still important for maintaining good health.
-                  </p>
-                </div>
-              </div>
+              <p className="text-green-600 font-semibold text-lg">
+                Your liver is healthy. We appreciate your commitment to maintaining good liver health. Get in touch with your doctor to know more about Liver Health and how to keep it healthy in the long run.
+              </p>
             )}
           </div>
 
-          {/* User Info Summary */}
-          <div className="bg-white p-6 rounded-2xl mb-6">
-            <h4 className="font-bold text-gray-800 mb-3">Assessment Summary for:</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><span className="font-semibold">Name:</span> {userData.name}</div>
-              <div><span className="font-semibold">Email:</span> {userData.email}</div>
-              <div><span className="font-semibold">City:</span> {userData.city}</div>
-              <div><span className="font-semibold">Mobile:</span> {userData.mobile}</div>
-            </div>
+          {/* Additional Information */}
+          <div className="text-center mb-6">
+            <p className="text-gray-700 font-semibold mb-2">
+              For more insights about liver health,
+            </p>
+            <p className="text-gray-700 font-semibold">
+
+              visit our  <Link href="https://ayushmanliver.com" className='underline'>Ayushman Liver website</Link>.
+            </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={onRestart}
-              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg transition-colors duration-200"
-            >
-              Take Assessment Again
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg transition-colors duration-200"
-            >
-              Print Results
-            </button>
+          {/* Disclaimer */}
+          <div className="text-xs text-gray-500 leading-relaxed">
+            <p className="mb-2">
+              <strong>Note:</strong> This risk assessment tool is not intended as medical advice or to suggest treatment.
+            </p>
+            <p>
+              The study investigators recommend you consult your physician or other healthcare professional for advice.
+            </p>
           </div>
         </div>
       </div>
