@@ -318,7 +318,6 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
           <div className="mb-6">
             <div className="flex justify-between text-sm text-gray-500 mb-2">
               <span>Question {currentQuestion + 1} of 9</span>
-              <span>Score: {totalScore}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
@@ -415,7 +414,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
 // Results Component
 const ResultsComponent = ({ onRestart, userData, quizResults }) => {
   const score = quizResults.totalScore;
-  // const score = 15;
+  // const score = 8;
 
 
   // Determine risk level based on score
@@ -431,8 +430,13 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
   // Calculate slider position (score ranges from 0-15)
   const getSliderPosition = (score) => {
     // Adjust score to point slightly before the actual value
-    const adjustedScore = score - 0.1;
-
+    let adjustedScore = score - 0.1;
+    if( score == 8){
+      adjustedScore = score+0.05;
+    }
+    else if(score == 9){
+      adjustedScore = score + 0.09
+    }
     // Total flex units: 4.1 + 4.1 + 7 = 15.2
     const totalFlexUnits = 15.2;
 
@@ -526,10 +530,10 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
             {/* Score markers positioned correctly */}
             <div className="flex justify-between mt-2 mb-4 text-sm text-gray-600 relative">
               <span className="absolute left-0">0</span>
-              <span className="absolute left-[25.97%] transform -translate-x-1/2">4</span>
+              <span className="absolute left-[25.49%] transform -translate-x-1/2">4</span>
               {/* <span className="absolute left-[40%] transform -translate-x-1/2">4</span> */}
               {/* <span className="absolute left-[60%] transform -translate-x-1/2">7</span> */}
-              <span className="absolute left-[52.63%] transform -translate-x-1/2">8</span>
+              <span className="absolute left-[53.0%] transform -translate-x-1/2">8</span>
               {/* <span className="absolute right-0">15</span> */}
             </div>
 
