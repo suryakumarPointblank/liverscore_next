@@ -316,9 +316,9 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
         <div className="bg-white rounded-3xl p-6 shadow-2xl border border-gray-100">
           {/* Progress Bar */}
           <div className="mb-6">
-            <div className="flex justify-start text-sm text-gray-500 mb-2">
-              <span>Question {currentQuestion + 1} of {allQuestions.length}</span>
-              {/* <span>Score: {totalScore}</span> */}
+            <div className="flex justify-between text-sm text-gray-500 mb-2">
+              <span>Question {currentQuestion + 1} of 9</span>
+              <span>Score: {totalScore}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
