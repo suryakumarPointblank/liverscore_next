@@ -136,6 +136,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
       id: 1,
       text: "What is your age group?",
       image: "/img/q1.png",
+      subtext: "",
       options: [
         { text: "Less than 35 years", points: 0, value: "under35" },
         { text: "35 years or older", points: 2, value: "over35" }
@@ -153,6 +154,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     {
       id: 3,
       text: "What is your waist measurement?",
+      subtext: "Taken below the ribs, usually at the level of the navel",
       image: "/img/q3.1.png", // Will be dynamic based on gender
       options: [] // Will be populated dynamically
     },
@@ -180,15 +182,17 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     {
       id: 6,
       text: "What is your HbA1c*?(glycated haemoglobin test)",
+      // subtext: "*glycated haemoglobin test",
       image: "/img/q6.png",
       options: [
-        { text: "No", points: 0, value: "normal_cholesterol" },
-        { text: "Yes", points: 2, value: "abnormal_cholesterol" }
+        { text: "Less than 7", points: 0, value: "Less than 7" },
+        { text: "Greater than 7", points: 0, value: "Greater than 7" },
+        { text: "Dont know", points: 0, value: "Dont know" }
       ]
     },
     {
       id: 7,
-      text: "Have you heard your cholesterol levels are abnormal?",
+      text: "Do you have a history of High Cholesterol?",
       image: "/img/q7.png",
       options: [
         { text: "No", points: 0, value: "normal_cholesterol" },
@@ -198,6 +202,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     {
       id: 8,
       text: "Are you physically active?",
+      subtext: "You are considered physically active if you participate in any sport/exercises for at least 20 consecutive minutes 3 times throughout per week",
       image: "/img/q8.png",
       options: [
         { text: "No", points: 1, value: "not_active" },
@@ -222,7 +227,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     } else if (currentGender === 'female') {
       return [{
         id: 10,
-        text: "Did you have menopause?",
+        text: "Are/Have You Experiencing/Experienced Menopause?",
         image: "/img/q9.1.png",
         options: [
           { text: "No", points: 0, value: "no_menopause" },
@@ -311,9 +316,9 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
         <div className="bg-white rounded-3xl p-6 shadow-2xl border border-gray-100">
           {/* Progress Bar */}
           <div className="mb-6">
-            <div className="flex justify-between text-sm text-gray-500 mb-2">
+            <div className="flex justify-start text-sm text-gray-500 mb-2">
               <span>Question {currentQuestion + 1} of {allQuestions.length}</span>
-              <span>Score: {totalScore}</span>
+              {/* <span>Score: {totalScore}</span> */}
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
@@ -345,9 +350,9 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">
               {currentQ.text}
             </h2>
-            {currentQ.subtitle && (
+            {currentQ.subtext && (
               <p className="text-gray-600 text-sm">
-                {currentQ.subtitle}
+                {currentQ.subtext}
               </p>
             )}
           </div>
@@ -410,6 +415,8 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
 // Results Component
 const ResultsComponent = ({ onRestart, userData, quizResults }) => {
   const score = quizResults.totalScore;
+  // const score = 15;
+
 
   // Determine risk level based on score
   const getRiskLevel = (score) => {
@@ -423,7 +430,13 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
 
   // Calculate slider position (score ranges from 0-15)
   const getSliderPosition = (score) => {
-    return Math.min((score / 15) * 100, 100);
+    // Adjust score to point slightly before the actual value
+    const adjustedScore = score - 0.1;
+
+    // Total flex units: 4.1 + 4.1 + 7 = 15.2
+    const totalFlexUnits = 15.2;
+
+    return Math.min((adjustedScore / totalFlexUnits) * 100, 100);
   };
 
   useEffect(() => {
@@ -479,20 +492,18 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
         <div className="  p-6  text-center">
 
           {/* Title */}
-          {score && score < 8 ? (<h1 className="text-3xl font-bold text-green-600 mb-2">
-            Healthy
-          </h1>) : (<h1 className="text-3xl font-bold text-red-600 mb-2">
-            Unhealthy
-          </h1>)}
-          {score && score < 8 ? (<h1 className="text-3xl font-bold text-green-600 mb-2">
+          <h1 className="text-3xl font-bold text-black/90 mb-2 mt-5">
+            Your Liver Score is
+          </h1>
+          {/* {score && score < 8 ? (<h1 className="text-3xl font-bold text-green-600 mb-2">
             Liver Score
           </h1>) : (<h1 className="text-3xl font-bold text-red-600 mb-2">
             Liver Score
-          </h1>)}
+          </h1>)} */}
 
 
           {/* Score Display */}
-          <div className={`text-5xl font-bold ${score < 8 ? 'text-green-600' : 'text-red-600'}  mb-6`}>
+          <div className={`text-5xl font-bold text-black/90 mb-6`}>
             {score}
           </div>
 
@@ -507,18 +518,18 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
           <div className="relative mb-8">
             {/* Background slider track with three colors */}
             <div className="h-8 rounded-full overflow-hidden flex">
-              <div className="bg-green-500" style={{ flex: '3' }}></div>
-              <div className="bg-yellow-500" style={{ flex: '5' }}></div>
+              <div className="bg-green-500" style={{ flex: '4.1' }}></div>
+              <div className="bg-yellow-500" style={{ flex: '4.1' }}></div>
               <div className="bg-red-500" style={{ flex: '7' }}></div>
             </div>
 
             {/* Score markers positioned correctly */}
             <div className="flex justify-between mt-2 mb-4 text-sm text-gray-600 relative">
-              <span className="absolute left-0">1</span>
-              <span className="absolute left-[20%] transform -translate-x-1/2">3</span>
+              <span className="absolute left-0">0</span>
+              <span className="absolute left-[25.97%] transform -translate-x-1/2">4</span>
               {/* <span className="absolute left-[40%] transform -translate-x-1/2">4</span> */}
               {/* <span className="absolute left-[60%] transform -translate-x-1/2">7</span> */}
-              <span className="absolute left-[53%] transform -translate-x-1/2">8</span>
+              <span className="absolute left-[52.63%] transform -translate-x-1/2">8</span>
               {/* <span className="absolute right-0">15</span> */}
             </div>
 
@@ -540,9 +551,13 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
 
           {/* Risk Message */}
           <div className="mb-6 mt-15">
-            {isHighRisk ? (
+            {score > 8 ? (
               <p className="text-red-600 font-semibold text-base">
-                You are at high risk for Metabolic dysfunction-Associated Steatotic Liver Disease (MASLD). Consult your doctor at the earliest and ask about MASLD and further steps to the taken.
+                You are at high risk for Metabolic dysfunction-Associated Steatotic Liver Disease (MASLD). Consult your doctor at the earliest and ask about further steps to be taken.
+              </p>
+            ) : score > 4 ? (
+              <p className="text-yellow-500 font-semibold text-lg">
+                You are at moderate risk for Metabolic dysfunction-Associated Steatotic Liver Disease (MASLD). Consult your doctor at the earliest and ask about MASLD and further steps to be taken.
               </p>
             ) : (
               <p className="text-green-600 font-semibold text-lg">
@@ -631,7 +646,7 @@ const DisclaimerComponent = ({ onNext, onPrevious }) => {
 
 // Main Homepage Component
 const Homepage = () => {
-  const [currentStep, setCurrentStep] = useState('home');
+  const [currentStep, setCurrentStep] = useState('homepage');
   const [userData, setUserData] = useState(null);
   const [quizResults, setQuizResults] = useState(null);
 
