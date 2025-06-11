@@ -431,10 +431,10 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
   const getSliderPosition = (score) => {
     // Adjust score to point slightly before the actual value
     let adjustedScore = score - 0.1;
-    if( score == 8){
-      adjustedScore = score+0.05;
+    if (score == 8) {
+      adjustedScore = score + 0.05;
     }
-    else if(score == 9){
+    else if (score == 9) {
       adjustedScore = score + 0.09
     }
     // Total flex units: 4.1 + 4.1 + 7 = 15.2
@@ -745,56 +745,67 @@ const Homepage = () => {
     default:
       // Homepage
       return (
-        <div className="h-screen bg-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-          {/* Background decoration circle */}
-          <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
+        <div className="h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ background: 'radial-gradient(circle, #e0f3f9 0%, #c9e9f4 50%, #b7e3f0 100%)' }}>
+          {/* Top right cloud decoration */}
+          <div className="absolute -top-2 -right-2 w-64 h-48 md:w-80 md:h-60">
+            <Image
+              src="/img/clouds/right.png"
+              alt="Top right cloud decoration"
+              width={320}
+              height={240}
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          {/* Bottom left cloud decoration */}
+          <div className="absolute -bottom-2 -left-2 w-48 h-36 md:w-64 md:h-48">
+            <Image
+              src="/img/clouds/left.png"
+              alt="Bottom left cloud decoration"
+              width={256}
+              height={192}
+              className="w-full h-full object-contain"
+            />
+          </div>
 
           {/* Logo Section */}
-          <div className="mb-4 z-10">
-            <div className="rounded-lg flex items-center justify-center">
+          <div className="mb-8 z-10">
+            <div className="flex items-center justify-center">
               <Image
                 src="/img/ayushman_logo.png"
                 alt="Ayushman Liver"
                 width={500}
                 height={367}
-                className="w-[224px]"
+                className="w-[200px] md:w-[240px]"
                 priority
               />
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="relative mb-0 z-10">
-            <div className="text-center px-4 mb-2">
-              <h1 className="text-4xl md:text-5xl font-bold text-cyan-600 leading-tight">
-                Assess your risk<br />
-                of Fatty Liver
-              </h1>
-            </div>
-
-            {/* Liver image placeholder */}
-            <div className="flex items-center justify-center">
-              <Image
-                src="/img/liver.png"
-                alt="Liver"
-                width={600}
-                height={400}
-                className="w-[250px] max-w-[400px]"
-                priority
-              />
-            </div>
+          <div className="text-center px-4 mb-12 z-10">
+            <h2 className="text-xl md:text-2xl font-semibold mb-4 leading-relaxed" style={{ color: '#4cbadb' }}>
+              Answer the call. Own your liver health.
+            </h2>
+            <h3 className="text-lg md:text-xl font-medium text-gray-600 leading-relaxed">
+              Assess your risk of fatty liver.
+            </h3>
           </div>
 
           {/* CTA Button */}
-          <div className="mt-8 z-10">
+          <div className="z-10">
             <button
-              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold text-xl px-16 py-4 rounded-full shadow-lg transition-colors duration-200"
+              className="text-white font-bold text-xl px-12 py-4 rounded-full shadow-lg transition-colors duration-200"
+              style={{ backgroundColor: '#4cbadb' }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#3a9bc1'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#4cbadb'}
               onClick={handleLetsGo}
             >
               Let's go!
             </button>
           </div>
         </div>
+
       );
   }
 };
