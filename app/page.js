@@ -2,6 +2,153 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+
+// BMI Calculator Modal Component
+const BMICalculatorModal = ({ isOpen, onClose }) => {
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [unit, setUnit] = useState('metric'); // metric or imperial
+  const [bmi, setBmi] = useState(null);
+  const [bmiCategory, setBmiCategory] = useState('');
+
+  const calculateBMI = () => {
+    if (!weight || !height) {
+      alert('Please enter both weight and height');
+      return;
+    }
+
+    let weightKg = parseFloat(weight);
+    let heightM = parseFloat(height);
+
+    if (unit === 'imperial') {
+      // Convert pounds to kg and feet to meters
+      weightKg = weightKg * 0.453592;
+      heightM = heightM * 0.3048;
+    } else {
+      // Convert cm to meters if needed
+      if (heightM > 3) {
+        heightM = heightM / 100;
+      }
+    }
+
+    const calculatedBMI = weightKg / (heightM * heightM);
+    setBmi(calculatedBMI.toFixed(1));
+
+    // Determine BMI category
+    if (calculatedBMI < 18.5) {
+      setBmiCategory('Underweight');
+    } else if (calculatedBMI < 23) {
+      setBmiCategory('Normal weight');
+    } else if (calculatedBMI < 25) {
+      setBmiCategory('Overweight');
+    } else if (calculatedBMI < 30) {
+      setBmiCategory('Obesity Class I');
+    } else {
+      setBmiCategory('Obesity Class II or higher');
+    }
+  };
+
+  const resetCalculator = () => {
+    setWeight('');
+    setHeight('');
+    setBmi(null);
+    setBmiCategory('');
+  };
+
+  const handleClose = () => {
+    resetCalculator();
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">BMI Calculator</h2>
+          <button
+            onClick={handleClose}
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          >
+            ×
+          </button>
+        </div>
+
+       
+
+        {/* Input Fields */}
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Weight {unit === 'metric' ? '(kg)' : '(lbs)'}
+            </label>
+            <input
+              type="number"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder={unit === 'metric' ? 'Enter weight in kg' : 'Enter weight in lbs'}
+              className="w-full px-4 py-3 bg-gray-50 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Height {unit === 'metric' ? '(cm)' : '(ft)'}
+            </label>
+            <input
+              type="number"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+              placeholder={unit === 'metric' ? 'Enter height in cm or m' : 'Enter height in ft'}
+              step={unit === 'metric' ? '0.1' : '0.1'}
+              className="w-full px-4 py-3 bg-gray-50 rounded-full text-gray-700 placeholder-gray-500 border-none outline-none focus:ring-2 focus:ring-cyan-500"
+            />
+          </div>
+        </div>
+
+        {/* Calculate Button */}
+        <button
+          onClick={calculateBMI}
+          className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-full shadow-lg transition-colors duration-200 mb-6"
+        >
+          Calculate BMI
+        </button>
+
+        {/* Results */}
+        {bmi && (
+          <div className="bg-cyan-50 rounded-2xl p-6 mb-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Your BMI is</h3>
+              <div className="text-4xl font-bold text-cyan-600 mb-2">{bmi}</div>
+              <div className="text-gray-700 font-medium">{bmiCategory}</div>
+            </div>
+          </div>
+        )}
+
+        
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={resetCalculator}
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 rounded-full transition-colors duration-200"
+          >
+            Reset
+          </button>
+          <button
+            onClick={handleClose}
+            className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white font-medium py-3 rounded-full transition-colors duration-200"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // User Info Form Component
 const UserInfoForm = ({ onNext, onPrevious }) => {
   const [formData, setFormData] = useState({
@@ -129,6 +276,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [totalScore, setTotalScore] = useState(0);
+  const [showBMICalculator, setShowBMICalculator] = useState(false);
 
   // Quiz questions based on the NAFLD Risk Assessment
   const questions = [
@@ -264,13 +412,6 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
         completedAt: new Date().toISOString()
       };
 
-      // Save to localStorage
-      const existingData = JSON.parse(localStorage.getItem('quizUserData') || '{}');
-      localStorage.setItem('quizUserData', JSON.stringify({
-        ...existingData,
-        quizResults
-      }));
-
       onNext(quizResults);
     }
   };
@@ -310,6 +451,12 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background decoration circle */}
       <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-1/4 w-52 h-52 md:w-96 md:h-96 bg-cyan-100 rounded-full"></div>
+
+      {/* BMI Calculator Modal */}
+      <BMICalculatorModal 
+        isOpen={showBMICalculator} 
+        onClose={() => setShowBMICalculator(false)} 
+      />
 
       {/* Main Quiz Container */}
       <div className="w-full max-w-2xl mx-auto z-10">
@@ -379,11 +526,18 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
               </button>
             ))}
           </div>
-          {currentQuestion == 3 && (<div>
-            <Link href="https://nash24x7.com/bmi/" className={` p-2 mb-2 text-left rounded-xl border-2 transition-all duration-200 flex items-center text-gray-600`}> Calculate your BMI
-            </Link>
 
-          </div>)}
+          {/* BMI Calculator Button - Show only on BMI question */}
+          {currentQuestion === 3 && (
+            <div className="mb-6">
+              <button
+                onClick={() => setShowBMICalculator(true)}
+                className="w-full p-3 text-center rounded-xl border-2 border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-200 font-medium"
+              >
+                🧮 Calculate your BMI
+              </button>
+            </div>
+          )}
 
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center">
@@ -713,7 +867,7 @@ const Homepage = () => {
       return (
         <QuizComponent
           onNext={handleQuizComplete}
-          onPrevious={handleBackToUserInfo}
+          onPrevious={handleBackToDisclaimer}
           userData={userData}
         />
       );
