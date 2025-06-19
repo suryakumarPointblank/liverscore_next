@@ -330,7 +330,7 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     {
       id: 6,
       text: "What is your HbA1c*?(glycated haemoglobin test)",
-      // subtext: "*glycated haemoglobin test",
+      subtext: "HbA1c is a blood test that shows your average blood sugar levels over the past 2 to 3 months.",
       image: "/img/q6.png",
       options: [
         { text: "Less than 7", points: 0, value: "Less than 7" },
