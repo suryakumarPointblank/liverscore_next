@@ -46,6 +46,18 @@ const BMICalculatorModal = ({ isOpen, onClose }) => {
     } else {
       setBmiCategory('Obesity Class II or higher');
     }
+
+    // Track BMI calculation
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'bmi_calculated',
+      bmi_value: calculatedBMI.toFixed(1),
+      bmi_category: calculatedBMI < 18.5 ? 'Underweight' : 
+                   calculatedBMI < 23 ? 'Normal weight' :
+                   calculatedBMI < 25 ? 'Overweight' :
+                   calculatedBMI < 30 ? 'Obesity Class I' : 'Obesity Class II or higher',
+      quiz_type: 'fatty_liver_score'
+    });
   };
 
   const resetCalculator = () => {
@@ -75,8 +87,6 @@ const BMICalculatorModal = ({ isOpen, onClose }) => {
             ×
           </button>
         </div>
-
-       
 
         {/* Input Fields */}
         <div className="space-y-4 mb-6">
@@ -127,8 +137,6 @@ const BMICalculatorModal = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        
-
         {/* Action Buttons */}
         <div className="flex gap-3">
           <button
@@ -158,6 +166,15 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
     mobile: ''
   });
 
+  // Track when user info form is viewed
+  useEffect(() => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'user_info_form_viewed',
+      quiz_type: 'fatty_liver_score'
+    });
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -185,6 +202,13 @@ const UserInfoForm = ({ onNext, onPrevious }) => {
       alert('Please enter a valid mobile number');
       return;
     }
+
+    // Track form completion
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'user_info_completed',
+      quiz_type: 'fatty_liver_score'
+    });
 
     onNext(formData);
   };
@@ -277,6 +301,26 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
   const [answers, setAnswers] = useState({});
   const [totalScore, setTotalScore] = useState(0);
   const [showBMICalculator, setShowBMICalculator] = useState(false);
+
+  // Track quiz start when component mounts
+  useEffect(() => {
+    // Get UTM parameters to track source
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmSource = urlParams.get('utm_source');
+    const utmMedium = urlParams.get('utm_medium');
+    const utmCampaign = urlParams.get('utm_campaign');
+    
+    // Track quiz start
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'quiz_started',
+      utm_source: utmSource || 'direct',
+      utm_medium: utmMedium || 'none',
+      utm_campaign: utmCampaign || 'none',
+      quiz_type: 'fatty_liver_score',
+      total_questions: 9
+    });
+  }, []);
 
   // Quiz questions based on the NAFLD Risk Assessment
   const questions = [
@@ -398,17 +442,75 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
     // Calculate total score
     const score = Object.values(newAnswers).reduce((sum, answer) => sum + answer.points, 0);
     setTotalScore(score);
+
+    // Track the answer selection with question-specific events
+    const questionId = allQuestions[currentQuestion].id;
+    window.dataLayer = window.dataLayer || [];
+    
+    // Generic quiz answer event
+    window.dataLayer.push({
+      event: 'quiz_answer',
+      question_id: `question_${questionId}`,
+      question_text: allQuestions[currentQuestion].text,
+      selected_option: option.value,
+      selected_text: option.text,
+      points_awarded: option.points,
+      current_total_score: score,
+      question_number: currentQuestion + 1,
+      quiz_type: 'fatty_liver_score'
+    });
+
+    // Question-specific events for detailed tracking
+    // For Q9 (alcohol) and Q10 (menopause), both track as question 9 since they're the same position
+    const trackingQuestionId = (questionId === 10) ? 9 : questionId;
+    const questionType = questionId === 9 ? 'alcohol' : questionId === 10 ? 'menopause' : '';
+    
+    window.dataLayer.push({
+      event: `quiz_question_${trackingQuestionId}_answered`,
+      question_id: `question_${questionId}`,
+      question_text: allQuestions[currentQuestion].text,
+      selected_option: option.value,
+      selected_text: option.text,
+      points_awarded: option.points,
+      current_total_score: score,
+      question_number: currentQuestion + 1,
+      question_type_detail: questionType,
+      quiz_type: 'fatty_liver_score'
+    });
   };
 
   const handleNext = () => {
     if (currentQuestion < allQuestions.length - 1) {
+      // Track question progression
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'quiz_question_next',
+        from_question: currentQuestion + 1,
+        to_question: currentQuestion + 2,
+        quiz_type: 'fatty_liver_score'
+      });
+      
       setCurrentQuestion(currentQuestion + 1);
     } else {
+      // Quiz completed - determine risk level
+      const riskLevel = totalScore >= 8 ? 'high' : totalScore >= 4 ? 'moderate' : 'low';
+      
+      // Track quiz completion
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'quiz_completed',
+        final_score: totalScore,
+        risk_level: riskLevel,
+        total_questions: allQuestions.length,
+        quiz_type: 'fatty_liver_score',
+        answers_summary: Object.keys(answers).length
+      });
+
       // Quiz completed, save results and proceed
       const quizResults = {
         answers,
         totalScore,
-        riskLevel: totalScore >= 8 ? 'high' : 'low',
+        riskLevel,
         completedAt: new Date().toISOString()
       };
 
@@ -418,6 +520,15 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
+      // Track backward navigation
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'quiz_question_previous',
+        from_question: currentQuestion + 1,
+        to_question: currentQuestion,
+        quiz_type: 'fatty_liver_score'
+      });
+      
       setCurrentQuestion(currentQuestion - 1);
     } else {
       onPrevious();
@@ -531,7 +642,16 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
           {currentQuestion === 3 && (
             <div className="mb-6">
               <button
-                onClick={() => setShowBMICalculator(true)}
+                onClick={() => {
+                  // Track BMI calculator open
+                  window.dataLayer = window.dataLayer || [];
+                  window.dataLayer.push({
+                    event: 'bmi_calculator_opened',
+                    quiz_type: 'fatty_liver_score',
+                    question_number: currentQuestion + 1
+                  });
+                  setShowBMICalculator(true);
+                }}
                 className="w-full p-3 text-center rounded-xl border-2 border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100 hover:border-cyan-300 transition-all duration-200 font-medium"
               >
                 🧮 Calculate your BMI
@@ -568,8 +688,19 @@ const QuizComponent = ({ onNext, onPrevious, userData }) => {
 // Results Component
 const ResultsComponent = ({ onRestart, userData, quizResults }) => {
   const score = quizResults.totalScore;
-  // const score = 8;
 
+  // Track results view when component mounts
+  useEffect(() => {
+    const riskLevel = score >= 8 ? 'high' : score >= 4 ? 'moderate' : 'low';
+    
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'results_viewed',
+      final_score: score,
+      risk_level: riskLevel,
+      quiz_type: 'fatty_liver_score'
+    });
+  }, [score]);
 
   // Determine risk level based on score
   const getRiskLevel = (score) => {
@@ -616,6 +747,14 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
 
         if (result.success) {
           console.log('Data saved to database successfully');
+          
+          // Track successful data save
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: 'quiz_data_saved',
+            quiz_type: 'fatty_liver_score',
+            final_score: score
+          });
         } else {
           console.error('Failed to save to database:', result.message);
         }
@@ -642,9 +781,6 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
         />
       </div>
 
-
-
-
       {/* Results Container */}
       <div className="w-full max-w-md mx-auto z-10 mt-[60px]">
         <div className="  p-6  text-center">
@@ -653,12 +789,6 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
           <h1 className="text-3xl font-bold text-black/90 mb-2 mt-5">
             Your Liver Score is
           </h1>
-          {/* {score && score < 8 ? (<h1 className="text-3xl font-bold text-green-600 mb-2">
-            Liver Score
-          </h1>) : (<h1 className="text-3xl font-bold text-red-600 mb-2">
-            Liver Score
-          </h1>)} */}
-
 
           {/* Score Display */}
           <div className={`text-5xl font-bold text-black/90 mb-6`}>
@@ -685,10 +815,7 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
             <div className="flex justify-between mt-2 mb-4 text-sm text-gray-600 relative">
               <span className="absolute left-0">0</span>
               <span className="absolute left-[25.49%] transform -translate-x-1/2">4</span>
-              {/* <span className="absolute left-[40%] transform -translate-x-1/2">4</span> */}
-              {/* <span className="absolute left-[60%] transform -translate-x-1/2">7</span> */}
               <span className="absolute left-[53.0%] transform -translate-x-1/2">8</span>
-              {/* <span className="absolute right-0">15</span> */}
             </div>
 
             {/* Position indicator below slider */}
@@ -730,8 +857,22 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
               For more insights about liver health,
             </p>
             <p className="text-gray-700 font-semibold">
-
-              visit our  <Link href="https://ayushmanliver.com" className='underline'>Ayushman Liver website</Link>.
+              visit our  <Link 
+                href="https://ayushmanliver.com" 
+                className='underline'
+                onClick={() => {
+                  // Track website link click
+                  window.dataLayer = window.dataLayer || [];
+                  window.dataLayer.push({
+                    event: 'website_link_clicked',
+                    link_destination: 'ayushmanliver.com',
+                    quiz_type: 'fatty_liver_score',
+                    user_score: score
+                  });
+                }}
+              >
+                Ayushman Liver website
+              </Link>.
             </p>
           </div>
 
@@ -752,6 +893,26 @@ const ResultsComponent = ({ onRestart, userData, quizResults }) => {
 
 // Disclaimer Component
 const DisclaimerComponent = ({ onNext, onPrevious }) => {
+  // Track disclaimer view
+  useEffect(() => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'disclaimer_viewed',
+      quiz_type: 'fatty_liver_score'
+    });
+  }, []);
+
+  const handleNext = () => {
+    // Track disclaimer acceptance
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'disclaimer_accepted',
+      quiz_type: 'fatty_liver_score'
+    });
+    
+    onNext();
+  };
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background decoration circle */}
@@ -790,7 +951,7 @@ const DisclaimerComponent = ({ onNext, onPrevious }) => {
             </button>
 
             <button
-              onClick={onNext}
+              onClick={handleNext}
               className="bg-gray-800 hover:bg-gray-900 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg transition-colors duration-200"
             >
               Next
@@ -808,25 +969,55 @@ const Homepage = () => {
   const [userData, setUserData] = useState(null);
   const [quizResults, setQuizResults] = useState(null);
 
+  // Track homepage view when component mounts
+  useEffect(() => {
+    if (currentStep === 'homepage') {
+      // Get UTM parameters for attribution
+      const urlParams = new URLSearchParams(window.location.search);
+      const utmSource = urlParams.get('utm_source');
+      const utmMedium = urlParams.get('utm_medium');
+      const utmCampaign = urlParams.get('utm_campaign');
+      
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'quiz_homepage_viewed',
+        utm_source: utmSource || 'direct',
+        utm_medium: utmMedium || 'none',
+        utm_campaign: utmCampaign || 'none',
+        quiz_type: 'fatty_liver_score'
+      });
+    }
+  }, [currentStep]);
+
   // Load saved data on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem('quizUserData');
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      setUserData(parsed);
-    }
+    // Note: localStorage is not supported in artifacts, so this would need to be adjusted for your environment
+    // const savedData = localStorage.getItem('quizUserData');
+    // if (savedData) {
+    //   const parsed = JSON.parse(savedData);
+    //   setUserData(parsed);
+    // }
   }, []);
 
   const handleLetsGo = () => {
+    // Track CTA button click
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'lets_go_clicked',
+      quiz_type: 'fatty_liver_score'
+    });
+    
     setCurrentStep('userInfo');
   };
 
   const handleUserInfoNext = (formData) => {
     setUserData(formData);
-    // Save user data to in-memory state (localStorage not supported in artifacts)
+    // Note: localStorage not supported in artifacts
+    // localStorage.setItem('quizUserData', JSON.stringify(formData));
     console.log('User data collected:', formData);
     setCurrentStep('disclaimer');
   };
+  
   const handleDisclaimerNext = () => {
     setCurrentStep('quiz');
   };
@@ -834,6 +1025,7 @@ const Homepage = () => {
   const handleBackToDisclaimer = () => {
     setCurrentStep('disclaimer');
   };
+  
   const handleQuizComplete = (results) => {
     setQuizResults(results);
     setCurrentStep('results');
@@ -848,6 +1040,13 @@ const Homepage = () => {
   };
 
   const handleRestart = () => {
+    // Track quiz restart
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'quiz_restarted',
+      quiz_type: 'fatty_liver_score'
+    });
+    
     setUserData(null);
     setQuizResults(null);
     setCurrentStep('home');
@@ -888,14 +1087,6 @@ const Homepage = () => {
         />
       );
 
-    case 'quiz':
-      return (
-        <QuizComponent
-          onNext={handleQuizComplete}
-          onPrevious={handleBackToDisclaimer}
-          userData={userData}
-        />
-      );
     default:
       // Homepage
       return (
@@ -959,7 +1150,6 @@ const Homepage = () => {
             </button>
           </div>
         </div>
-
       );
   }
 };
